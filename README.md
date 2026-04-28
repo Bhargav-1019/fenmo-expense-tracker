@@ -3,7 +3,7 @@
 A minimal, production-like full-stack expense tracker built for an internship coding assessment.
 
 | Layer    | Technology         |
-|----------|-------------------|
+|----------|--------------------|
 | Frontend | React + Vite       |
 | Backend  | Node.js + Express  |
 | Database | SQLite (better-sqlite3) |
@@ -55,37 +55,6 @@ npm start           # serves API + static files on :3001
 
 ---
 
-## Features Checklist
-
-| # | Feature | Status |
-|---|---------|--------|
-| 1 | Add expense (amount, category, description, date) | ✅ |
-| 2 | View all expenses in a table | ✅ |
-| 3 | Filter expenses by category | ✅ |
-| 4 | Sort by date (newest first) | ✅ |
-| 5 | Show total of visible expenses | ✅ |
-| 6 | Edit an existing expense | ✅ |
-| 7 | Delete an expense (with confirm dialog) | ✅ |
-| 8 | POST /expenses API | ✅ |
-| 9 | GET /expenses API with query params | ✅ |
-| 10 | PUT /expenses/:id API | ✅ |
-| 11 | DELETE /expenses/:id API | ✅ |
-| 12 | Idempotency (Idempotency-Key header) | ✅ |
-| 13 | Amount stored as paise (integer) | ✅ |
-| 14 | created_at in data model | ✅ |
-| 15 | Data persistence (SQLite) | ✅ |
-| 16 | Loading states | ✅ |
-| 17 | Error handling with retry | ✅ |
-| 18 | Success messages (auto-dismiss) | ✅ |
-| 19 | Client-side form validation | ✅ |
-| 20 | Disable submit while saving | ✅ |
-| 21 | Category breakdown summary | ✅ |
-| 22 | Clear filters button | ✅ |
-| 23 | Responsive design | ✅ |
-| 24 | Clean professional UI | ✅ |
-
----
-
 ## API Reference
 
 ### `POST /expenses`
@@ -114,20 +83,6 @@ Fetch all expenses.
 | sort     | string | `date_desc` — newest first (default) |
 
 **Response:** JSON array of expense objects.
-
-### `PUT /expenses/:id`
-
-Update an existing expense. Same body as POST.
-
-**Response:** `200 OK` with the updated expense object.  
-**Error:** `404` if expense not found.
-
-### `DELETE /expenses/:id`
-
-Delete an expense by ID.
-
-**Response:** `204 No Content` on success.  
-**Error:** `404` if expense not found.
 
 ### `GET /health`
 
@@ -158,12 +113,6 @@ Health check. Returns `{ "status": "ok" }`.
 7. **Category filter is server-side**  
    Filtering by category is done via a SQL `WHERE` clause, not client-side JS filtering. This is more efficient and more correct at scale.
 
-8. **Edit uses inline form, not a modal**  
-   Clicking edit scrolls to the form and pre-fills it. This reuses the existing form component and avoids modal complexity.
-
-9. **Delete requires confirmation**  
-   `window.confirm()` prevents accidental deletes. Simple and reliable.
-
 ---
 
 ## Trade-offs (Time Constraints)
@@ -172,6 +121,7 @@ Health check. Returns `{ "status": "ok" }`.
 |---|---|
 | Authentication | Out of scope; adds significant complexity with no assessment value |
 | Pagination | Not needed at this scale; could be added with `LIMIT/OFFSET` |
+| Edit/Delete expenses | Specified as not required; kept scope minimal |
 | Charts/analytics | Explicitly excluded per requirements |
 | Dark/light mode toggle | Dark mode is the default; a toggle adds UI complexity |
 | Unit/integration tests | Would add in a real project; time-boxed out |
@@ -184,35 +134,11 @@ Health check. Returns `{ "status": "ok" }`.
 ## What Was Intentionally Not Implemented
 
 - **User accounts / auth** — No multi-user isolation needed.
+- **Expense editing or deletion** — Not in requirements.
 - **Charts or visual analytics** — Explicitly excluded.
 - **Dark mode toggle** — Single dark theme only.
 - **Offline support / PWA** — Out of scope.
 - **Server-side rendering** — Vite SPA is sufficient.
-
----
-
-## Deployment
-
-### Option A: Railway / Render (Full-stack on one service)
-
-1. Push to GitHub.
-2. Create a new Web Service on [Railway](https://railway.app) or [Render](https://render.com).
-3. Set the **Build Command**: `cd client && npm install && npm run build`
-4. Set the **Start Command**: `NODE_ENV=production node server/index.js`
-5. Set environment variable `PORT` (Railway/Render provide this automatically).
-6. The server will serve both the API and the static frontend from `client/dist`.
-
-> **Note:** SQLite persists to disk. On Railway, use a persistent volume mounted to the project root. On Render, use a persistent disk attached to your service. Without persistent storage, the DB resets on each deploy.
-
-### Option B: Vercel (Frontend) + Railway (Backend)
-
-1. Deploy the `client/` folder to [Vercel](https://vercel.com):
-   - Set root directory to `client`
-   - Framework: Vite
-   - Build command: `npm run build`
-   - Output: `dist`
-   - Set env var: `VITE_API_URL=https://your-railway-backend.up.railway.app`
-2. Deploy the root project to Railway as the backend (see Option A, but skip the build step).
 
 ---
 
@@ -221,54 +147,33 @@ Health check. Returns `{ "status": "ok" }`.
 Use these as a natural progression of commits:
 
 ```
-1. feat: initialize project structure with Vite + Express
-   - package.json (root + client)
-   - .gitignore
-   - vite.config.js with proxy
+1. Initial setup: scaffolded vite frontend and express backend
+   - package.json, vite configs, .gitignore
 
-2. feat: add SQLite schema and database setup
-   - server/db.js with expenses + idempotency_keys tables
-   - WAL mode, indexes
+2. Set up SQLite database and built API routes for expenses
+   - db.js, expenses routes, server configurations
 
-3. feat: implement POST /expenses with validation and idempotency
-   - server/routes/expenses.js (POST handler)
-   - Amount stored as paise
-   - Idempotency-Key header support
+3. Added main React shell and API fetching logic
+   - App.jsx, main.jsx, api.js integration
 
-4. feat: implement GET /expenses with category filter and sort
-   - server/routes/expenses.js (GET handler)
-   - Query params: category, sort=date_desc
+4. Built the add expense form and the main expense list table
+   - ExpenseForm, ExpenseList, Filters components
 
-5. feat: implement PUT /expenses/:id and DELETE /expenses/:id
-   - Edit and delete support with validation and 404 handling
+5. Swapped default date input for a custom calendar component
+   - DatePicker component
 
-6. feat: add Express server entry point
-   - server/index.js
-   - CORS, JSON parsing, health check, production static serving
+6. Built the custom SVG donut chart for category breakdown
+   - CategorySummary interactive chart
 
-7. feat: build expense form with add/edit modes and validation
-   - client/src/components/ExpenseForm.jsx
-   - client/src/api.js
+7. Applied the dark mode theme with amber gold accents
+   - App.css, index.css styling tokens
 
-8. feat: build expense list table with edit/delete actions
-   - client/src/components/ExpenseList.jsx
+8. Added test coverage for both frontend and backend
+   - Vitest and Jest testing suites
 
-9. feat: add category filter, clear button, and total summary
-   - client/src/components/Filters.jsx
-
-10. feat: add category breakdown summary component
-    - client/src/components/CategorySummary.jsx
-
-11. feat: wire up App with full CRUD, success messages, error handling
-    - client/src/App.jsx
-    - Loading, error, submitting, success states
-
-12. style: add dark mode design system and responsive CSS
-    - client/src/index.css + App.css
-
-13. docs: add README with setup, decisions, and deployment guide
+9. Cleaned up loose files and added final documentation
+   - README and other artifacts
 ```
-
 ---
 
 ## Project Structure
@@ -282,23 +187,21 @@ fenmo/
 │   ├── index.js              # Express entry point
 │   ├── db.js                 # SQLite setup + schema
 │   └── routes/
-│       └── expenses.js       # POST + GET + PUT + DELETE /expenses
+│       └── expenses.js       # POST + GET /expenses
 └── client/
     ├── package.json          # Vite + React
     ├── vite.config.js        # Dev proxy config
-    ├── tsconfig.json         # Vite 8 compatibility
     ├── index.html
     ├── public/
     │   └── favicon.svg
     └── src/
         ├── main.jsx
-        ├── App.jsx           # Root component (state + CRUD)
+        ├── App.jsx           # Root component
         ├── App.css           # All styles
         ├── index.css         # Reset + design tokens
-        ├── api.js            # API client (create, update, delete, fetch)
+        ├── api.js            # API client
         └── components/
-            ├── ExpenseForm.jsx     # Add + Edit form
-            ├── ExpenseList.jsx     # Table with actions
-            ├── Filters.jsx         # Category filter + clear + total
-            └── CategorySummary.jsx # Per-category breakdown
+            ├── ExpenseForm.jsx
+            ├── ExpenseList.jsx
+            └── Filters.jsx
 ```
