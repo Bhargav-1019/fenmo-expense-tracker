@@ -2,6 +2,7 @@
   "name": "fenmo-expense-tracker",
   "private": true,
   "scripts": {
+    "postinstall": "cd client && npm install --include=dev",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "node server/index.js",
     "dev:client": "npm run dev --prefix client",
